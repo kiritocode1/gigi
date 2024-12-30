@@ -1,87 +1,76 @@
 package main
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
+	"os"
+	"path/filepath"
 )
 
-// binary search tree
-type Node struct {
-	data  int
-	left  *Node
-	right *Node
+
+
+type Object interface {
+    Type() string
+    Hash() string
+    Serialize() []byte
 }
 
-func (n *Node) insert(data int) {
-	if n == nil {
-		return
-	}
 
-	if data < n.data {
-		if n.left == nil {
-			n.left = &Node{data: data}
 
-		} else {
-			n.left.insert(data)
-		}
-
-	} else {
-		if n.right == nil {
-			n.right = &Node{data: data}
-		} else {
-			n.right.insert(data)
-		}
-	}
+type Blob struct {
+    content []byte
 }
 
-func (n *Node) search(data int) (bool, int) {
-	if n == nil {
-		return false, 0
-	}
-	if data == n.data {
-		return true, n.data
-	}
-	if data < n.data {
-		return n.left.search(data)
-	}
-	return n.right.search(data)
+func (b *Blob) Type() string {
+    return "blob"
 }
 
-func (n *Node) PrintInOrder() {
-	if n == nil {
-		return
-	}
 
-	n.left.PrintInOrder()
-	fmt.Print(n.data, " ")
-	n.right.PrintInOrder()
+func (b *Blob) Hash() string {
+    h := sha1.New()
+    data := append([]byte(fmt.Sprintf("blob %d\x00", len(b.content))), b.content...)
+    h.Write(data)
+    return hex.EncodeToString(h.Sum(nil)) 
 }
 
-func (n *Node) PrintPreOrder() {
-	if n == nil {
-		return
-	}
-	fmt.Print(n.data, " ")
-	n.left.PrintPreOrder()
-	n.right.PrintPreOrder()
+func (b *Blob) Serialize() []byte {
+    return b.content
+}
+type Repository struct {
+    path string
 }
 
-//! Step-1 make the tree structure
-//! step-2 make sha1 hashing algorithm
-//! step-3 implement the tree into the git algorithm thingy
-//! step-4 networking
-//! step-5 add the git algorithm to the networking
-//! step-6 make it so that i can form adapters and hooks on every commit
-//! profit ?
 
-//~ never done go btw : p and i got an interview in it
 
+func InitRepository(path string) (*Repository, error) {
+    gitPath := filepath.Join(path, ".gg")
+    
+    // Create basic Git directory structure
+    dirs := []string{
+        gitPath,
+        filepath.Join(gitPath, "objects"),
+        filepath.Join(gitPath, "refs/heads"),
+    }
+    
+    for _, dir := range dirs {
+        if err := os.MkdirAll(dir, 0755); err != nil {
+            return nil, fmt.Errorf("failed to create directory %s: %v", dir, err)
+        }
+    }
+
+
+
+    
+    return &Repository{path: path}, nil
+}
+    
 func main() {
-
-	result, err := Encrypt("./example-repo/main.c")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(result)
-
+    // Example usage
+    repo, err := InitRepository("./example-repo")
+    if err != nil {
+        fmt.Printf("Failed to initialize repository: %v\n", err)
+        return
+    }
+    fmt.Println("Repository initialized successfully" , repo)
 }
