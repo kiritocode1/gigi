@@ -129,6 +129,7 @@ func (repo *Repository) WriteIndex(entries *Index) error {
 	return os.WriteFile(indexPath, buffer.Bytes(), 0644)
 }
 
+// reads the index from the disk. returns an error if the index file is not found or corrupted
 func (repo *Repository) ReadIndexFiles() (*Index, error) {
 
 	indexPath := filepath.Join(repo.path, ".gg", "index")
