@@ -1,0 +1,26 @@
+
+
+
+<div>
+    <button  onclick="HandleClick">click </button>
+</div>
+
+
+<script>
+
+    function HandleClick(event){ 
+        if (event.isTrusted){ 
+            console.log("trusted")
+        }
+        else{
+            console.log("not trusted")
+        }
+    }
+
+    // to prevent script attack like this 
+    document.querySelector("button").addEventListener("click", function(event){ 
+        event.preventDefault(); 
+        console.log("MALICIOUS SCRIPT /  BOT ")
+    });
+
+</script>
