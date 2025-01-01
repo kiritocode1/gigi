@@ -52,7 +52,6 @@ func (c *Commit) String() string {
 // parent <parent hash>
 // author <author>
 // committer <committer>
-//
 func (c *Commit) Serialize() []byte {
 	var buffer bytes.Buffer
 
@@ -82,7 +81,6 @@ func (c *Commit) Hash() string {
 
 func ParseCommit(data []byte) (Commit, error) {
 	commit := NewCommit("", nil)
-
 	parts := bytes.SplitN(data, []byte{'\n', '\n'}, 2)
 
 	if len(parts) != 2 {
@@ -109,7 +107,6 @@ func ParseCommit(data []byte) (Commit, error) {
 		}
 		commit.Committer = *committer
 	}
-
 	return *commit, nil
 
 }

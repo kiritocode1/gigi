@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 type Object interface {
@@ -36,7 +37,6 @@ func (b *Blob) Serialize() []byte {
 type Repository struct {
 	path string
 }
-
 func InitRepository(path string) (*Repository, error) {
 	gitPath := filepath.Join(path, ".gg")
 
@@ -84,6 +84,16 @@ func main() {
 	fmt.Println("Is not valid hash: ", isNotValid)
 
 
-
-
 }
+
+// ! Add life cycle :
+//? git add <file.txt>
+//& creates a Blob object  using the HASHFILE() and HASHObject();
+//& update the Index ( using Index and IndexEntry);
+
+// ! Commit life cycle :
+//? git commit -m "message"
+// if there is no index file, create one
+//& create a new commit object using the Commit() function
+//& create a new tree object using the Tree() function
+//& Update the HEAD to point to the new commit

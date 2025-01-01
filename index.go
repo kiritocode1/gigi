@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
 )
 
 const (
@@ -15,14 +16,14 @@ const (
 )
 
 type TimeSpec struct {
-	Seconds     int32
-	Nanoseconds int32
+	Seconds     int64
+	Nanoseconds int64
 }
 
 type IndexEntry struct {
 	Ctime TimeSpec
 	Mtime TimeSpec
-	Dev   uint32
+	Dev   uint32 
 	Inode uint32
 	Mode  uint32
 	Uid   uint32 // for the user
@@ -36,7 +37,7 @@ type IndexEntry struct {
 }
 
 type Index struct {
-	Entries []IndexEntry // ? HOW TF DOES IT KNOWWW
+	Entries []IndexEntry 
 }
 
 func writeIndexEntries(entries *IndexEntry, buffer *bytes.Buffer) error {

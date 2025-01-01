@@ -52,7 +52,7 @@ func (t *Tree) Type() string {
 
 func (t *Tree) Hash() string {
 	ctx := t.Serialize()
-	headers := fmt.Sprintf("%s %d\x00", len(ctx))
+	headers := fmt.Sprintf("%s %d\x00", t.Type(), len(ctx))
 	h := sha1.New()
 	h.Write([]byte(headers))
 	h.Write(ctx)
