@@ -8,7 +8,7 @@ import (
 	"sort"
 )
 
-//?  <mode> <name>\0<SHA-1>
+// ?  <mode> <name>\0<SHA-1 hash>
 type TreeEntry struct {
 	Mode uint32
 	Name string
@@ -33,7 +33,7 @@ func (t *Tree) AddEntry(mode uint32, name string, hash [20]byte) {
 	})
 }
 
-// disk
+// Serialize the tree into a byte array
 func (t *Tree) Serialize() []byte {
 	sort.Slice(t.entries, func(i, j int) bool {
 		return t.entries[i].Name < t.entries[j].Name
@@ -61,28 +61,33 @@ func (t *Tree) Hash() string {
 }
 
 func ParseTree(data []byte) (Tree, error) {
-	tree := NewTree(); 
-	buffer := bytes.NewBuffer(data);
-	for buffer.Len()>0 { 
-		line, err := buffer.ReadBytes(0); if err != nil { return  *tree, err }
-		line = line[:len(line)-1];
-		partOfLine := bytes.SplitN(line, []byte{' '}, 2);
-		if len(partOfLine) != 2 { return *tree, fmt.Errorf("invalid tree entry") }
-		mode := uint32(0); 
-		fmt.Sscanf(string(partOfLine[0]), "%o", &mode);
-		// we need to check if the mode  is in the correct format
-		name := string(partOfLine[1]); 
-		// hash is of value 20 bytes long, we need to take it and convert it to a byte array
-		hash := make([]byte, 20);
-
-		if  _ , err := buffer.Read(hash); err != nil {
+	tree := NewTree()
+	buffer := bytes.NewBuffer(data)
+	for buffer.Len() > 0 {
+		line, err := buffer.ReadBytes(0)
+		if err != nil {
+			return *tree, err
+		}
+		line = line[:len(line)-1]
+		partOfLine := bytes.SplitN(line, []byte{' '}, 2)
+		if len(partOfLine) != 2 {
 			return *tree, fmt.Errorf("invalid tree entry")
-	}
+		}
+		mode := uint32(0)
+		fmt.Sscanf(string(partOfLine[0]), "%o", &mode)
+		// we need to check if the mode  is in the correct format
+		name := string(partOfLine[1])
+		// hash is of value 20 bytes long, we need to take it and convert it to a byte array
+		hash := make([]byte, 20)
 
-	var HashEntry [20]byte;
-	copy(HashEntry[:], hash);
+		if _, err := buffer.Read(hash); err != nil {
+			return *tree, fmt.Errorf("invalid tree entry")
+		}
 
-	tree.AddEntry(mode, name, HashEntry);
+		var HashEntry [20]byte
+		copy(HashEntry[:], hash)
+
+		tree.AddEntry(mode, name, HashEntry)
 	}
-	return *tree, nil; 
+	return *tree, nil
 }

@@ -83,4 +83,7 @@ func main() {
 	isNotValid := ValidateHash("invalid-hash")
 	fmt.Println("Is not valid hash: ", isNotValid)
 
+
+
+
 }
