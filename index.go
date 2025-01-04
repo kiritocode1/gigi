@@ -50,10 +50,7 @@ func writeIndexEntries(entries *IndexEntry, buffer *bytes.Buffer) error {
 	binary.Write(buffer, binary.BigEndian, entries.Uid)
 	binary.Write(buffer, binary.BigEndian, entries.Gid)
 	binary.Write(buffer, binary.BigEndian, entries.Size)
-
-	//! write times
-	binary.Write(buffer, binary.BigEndian, entries.Ctime)
-	binary.Write(buffer, binary.BigEndian, entries.Mtime)
+	
 
 	//! write sha1
 	buffer.Write(entries.Sha1[:])

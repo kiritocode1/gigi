@@ -1,13 +1,11 @@
+//go:build windows
 // +build windows
 
-package main;
-
-
-
+package main
 
 import (
-    "os"
-    "syscall"
+	"os"
+	"syscall"
 )
 
 func getFileMetadata(fileInfo os.FileInfo) (uint32, uint32, uint32, uint32, uint32) {
@@ -17,4 +15,3 @@ func getFileMetadata(fileInfo os.FileInfo) (uint32, uint32, uint32, uint32, uint
     }
     return uint32(stat.FileAttributes), 0, 0, 0, uint32(fileInfo.Mode())
 }
-

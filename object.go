@@ -37,6 +37,19 @@ func (repo *Repository) WriteObject(object ObjectType, content []byte) (string, 
 	return hash, nil
 }
 
+func isValidObjectType(objectType ObjectType) bool {
+	switch objectType {
+		case BlobObject , TreeObject , CommitObject:
+			return true
+		default:
+			return false
+	}
+}
+
+
+
+
+
 func (repo *Repository) ReadObject(hash string) (ObjectType, []byte, error) {
 
 	if !ValidateHash(hash) {
@@ -45,17 +58,28 @@ func (repo *Repository) ReadObject(hash string) (ObjectType, []byte, error) {
 
 	objectPath := filepath.Join(repo.path, ".gg/objects", hash[:2], hash[2:])
 
+	// im reading the compressed data 
 	compressedData, err := os.ReadFile(objectPath)
 	if err != nil {
+
+		if os.IsNotExist(err) {
+			return "", nil, fmt.Errorf("object file not found")
+		}
 		return "", nil, fmt.Errorf("failed to read object file: %v", err)
 	}
 
-	raw, err := zlib.NewReader(bytes.NewReader(compressedData))
+	const MaxSize = int64(100 * 1024 * 1024) // 100MB ... isse zyada nhi hona mangta
+
+	limitReader := io.LimitReader(bytes.NewReader(compressedData), MaxSize)
+	// this is a hack to prevent decompression bombs
+	raw, err := zlib.NewReader(limitReader)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to read object file: %v", err)
 	}
 
+	// defer raw.Close() to close the file after the function returns
 	defer raw.Close()
+	
 	var Decompressed bytes.Buffer
 	if _, err := io.Copy(&Decompressed, raw); err != nil {
 		return "", nil, fmt.Errorf("failed to read object file: %v", err)
@@ -80,10 +104,17 @@ func (repo *Repository) ReadObject(hash string) (ObjectType, []byte, error) {
 		return "", nil, fmt.Errorf("invalid object file")
 	}
 
+	ValidObjType := ObjectType(objtype)
+
+	if !isValidObjectType(ValidObjType) {
+		return "", nil, fmt.Errorf("invalid object type")
+		
+	}
+	
 	if len(content) != size {
 		return "", nil, fmt.Errorf("object file mismatch")
 	}
 
-	return ObjectType(objtype), content, nil
+	return ValidObjType, content, nil
 
 }

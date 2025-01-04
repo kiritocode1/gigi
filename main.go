@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 )
 
 type Object interface {
@@ -97,3 +96,11 @@ func main() {
 //& create a new commit object using the Commit() function
 //& create a new tree object using the Tree() function
 //& Update the HEAD to point to the new commit
+
+
+
+// ! .git 
+//? .git/objects -> Blobs 
+//? .git/refs/heads -> Branches
+//? .git/refs/tags -> Tags
+//? HEAD 

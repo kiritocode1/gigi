@@ -1,7 +1,6 @@
 //go:build linux || darwin
 // +build linux darwin
 
-// go : +build linux darwin
 package main
 
 import (
@@ -16,3 +15,4 @@ func getFileMetadata(fileInfo os.FileInfo) (uint32, uint32, uint32, uint32, uint
     }
     return uint32(stat.Dev), uint32(stat.Ino), uint32(stat.Uid), uint32(stat.Gid), uint32(fileInfo.Mode())
 }
+

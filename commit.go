@@ -29,23 +29,24 @@ type Commit struct {
 	Message    string
 }
 
-func NewCommit(treeHash string, parentHash []string) *Commit {
+func NewCommit(treeHash string, parentHash []string , author Sign , committer Sign , message string) *Commit {
 	return &Commit{
 		TreeHash:   treeHash,
 		ParentHash: parentHash,
-		Author:     Sign{},
-		Committer:  Sign{},
+		Author:     author,
+		Committer:  committer,
+		Message:   message,
 	}
 }
 
 func (c *Commit) String() string {
-	author := c.Author.String()
-	committer := c.Committer.String()
-	message := c.Message
-	treeHash := c.TreeHash
-	parentHash := c.ParentHash
-	return fmt.Sprintf("tree %s\nparent %s\nauthor %s\ncommitter %s\n\n%s", treeHash, parentHash, author, committer, message)
+    var parentHashes string
+    for _, parent := range c.ParentHash {
+        parentHashes += fmt.Sprintf("parent %s\n", parent)
+    }
+    return fmt.Sprintf("tree %s\n%sauthor %s\ncommitter %s\n\n%s", c.TreeHash, parentHashes, c.Author.String(), c.Committer.String(), c.Message)
 }
+
 
 // the commit format is
 // tree <tree hash>
@@ -79,34 +80,38 @@ func (c *Commit) Hash() string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
+
+
+
+// made to parse the data into commit struct
 func ParseCommit(data []byte) (Commit, error) {
-	commit := NewCommit("", nil)
+	commit := NewCommit("", nil , Sign{} , Sign{} , "")
 	parts := bytes.SplitN(data, []byte{'\n', '\n'}, 2)
 
 	if len(parts) != 2 {
 		return *commit, fmt.Errorf("invalid commit")
 	}
-	key := string(parts[0])
-	value := string(parts[1])
+	Key_or_obj_id := string(parts[0])
+	Message := string(parts[1])
 
-	switch key {
+	switch Key_or_obj_id {
 	case "tree":
-		commit.TreeHash = value
+		commit.TreeHash = Message
 	case "parent":
-		commit.ParentHash = append(commit.ParentHash, value)
+		commit.ParentHash = append(commit.ParentHash, Message)
 	case "author":
-		author, err := parseSign(value)
+		author, err := parseSign(Message)
 		if err != nil {
 			return Commit{}, err
 		}
 		commit.Author = *author
 	case "committer":
-		committer, err := parseSign(value)
-		if err != nil {
+		committer, err := parseSign(Message);if err != nil {
 			return Commit{}, err
 		}
 		commit.Committer = *committer
 	}
+	commit.Message = string(parts[1]); 
 	return *commit, nil
 
 }
@@ -129,5 +134,40 @@ func parseSign(sign string) (*Sign, error) {
 		Email: email,
 		Time:  time.Unix(timespace, 0),
 	}, nil
-
+	
 }
+
+
+
+func (repo *Repository) Commit(message string, author Sign, committer Sign) (string, error) {
+
+
+	treeHash := repo.GetCurrentTreeHash(); 
+
+	if treeHash == "" {
+		return "", fmt.Errorf("failed to get current tree hash")
+	}
+
+	parentHash := repo.GetCurrentCommitHash(); 
+
+	commit := NewCommit(treeHash, []string{parentHash}, author, committer, message); 
+
+
+	commitData := commit.Serialize();
+	commitHash := commit.Hash();
+
+
+	_ , err := repo.WriteObject(CommitObject, commitData);
+	if err != nil {
+		return "", fmt.Errorf("failed to write commit object: %v", err)
+	}
+
+
+	err = repo.UpdateHEAD(commitHash);
+	if err != nil {
+		return "", fmt.Errorf("failed to update HEAD: %v", err)
+	}
+
+
+	return commitHash, nil
+};
