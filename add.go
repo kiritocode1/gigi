@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+
+//  the path of a file --> adds it in the  
 func (repo *Repository) AddFile(path string) error {
 	// 1. Read file contents
 	contents, err := os.ReadFile(path)

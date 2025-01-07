@@ -9,7 +9,9 @@ import (
 	"path/filepath"
 )
 
-//? write object to disk
+//Returns: (string, error)
+//String is object hash;
+//Purpose: Store compressed objects in .gg/objects
 func (repo *Repository) WriteObject(object ObjectType, content []byte) (string, error) {
 
 	hash, data := HashObject(object, content)
@@ -49,13 +51,17 @@ func isValidObjectType(objectType ObjectType) bool {
 
 
 
-
+// Returns: (ObjectType, []byte, error)
+// ObjectType is the type of the object;
+// Purpose: Reads compressed objects from .gg/objects
 func (repo *Repository) ReadObject(hash string) (ObjectType, []byte, error) {
 
 	if !ValidateHash(hash) {
 		return "", nil, fmt.Errorf("invalid hash")
 	}
 
+	// objectPath is the path to the object file .. first 2 characters of the hash for the 
+	// directory and the rest of the hash for the file name that's how git works. 
 	objectPath := filepath.Join(repo.path, ".gg/objects", hash[:2], hash[2:])
 
 	// im reading the compressed data 
@@ -72,12 +78,13 @@ func (repo *Repository) ReadObject(hash string) (ObjectType, []byte, error) {
 
 	limitReader := io.LimitReader(bytes.NewReader(compressedData), MaxSize)
 	// this is a hack to prevent decompression bombs
+	// the limitReader will be closed after the function returns
 	raw, err := zlib.NewReader(limitReader)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to read object file: %v", err)
 	}
 
-	// defer raw.Close() to close the file after the function returns
+	//! defer raw.Close() to close the file until after the function returns
 	defer raw.Close()
 	
 	var Decompressed bytes.Buffer

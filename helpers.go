@@ -9,7 +9,6 @@ import (
 )
 
 
-
 func (repo *Repository) GetCurrentTreeHash() string{
 	index , err := repo.ReadIndexFiles(); 
 	if err != nil {
